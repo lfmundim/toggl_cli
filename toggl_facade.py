@@ -1,19 +1,19 @@
 from datetime import datetime
-from utils import home
-from configparser import ConfigParser
+from utils import get_token, get_current_month_first_day, get_current_month_last_day
+from datetime import datetime
 from models.timesheet_summary import TimesheetSummary
 import toggl_api
 
 def get_timesheet_summary(args):
-    if args.file:
-        config_object = ConfigParser()
-        config_object.read(home+'/.toggl/config.ini')
-        api_key = config_object['USERINFO']['token']
-    else:
-        api_key = args.key
+    api_key = get_token(args)
 
     base64_key = toggl_api.create_authorization(api_key)
-    entries = toggl_api.get_time_entries_from_period(args.start, args.end, base64_key)
+
+    start_date = args.start if args.start is not None else str(get_current_month_first_day())
+    end_date = args.end if args.end is not None else str(get_current_month_last_day())
+    print(start_date, end_date)
+
+    entries = toggl_api.get_time_entries_from_period(start_date, end_date, base64_key)
 
     period_worked_hours = 0
     hours_per_day = dict()
